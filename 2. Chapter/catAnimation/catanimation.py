@@ -39,9 +39,9 @@ while True: #the main game loop
     pygame.draw.circle(DISPLAY_SURFACE, BLUE, (MIDDLE_X, MIDDLE_Y), MIDDLE_X-20)
     #pygame.draw.rect(DISPLAY_SURFACE, RED, (MID_OFFSET_X, MID_OFFSET_Y, MIDDLE_X, MIDDLE_Y))
     pygame.draw.rect(DISPLAY_SURFACE, RED, (MIDDLE_X-2, MIDDLE_Y-2, 3, 3))
-    
+
     if direction == 'right':
-        cat_X += UPDATE
+        cat_x += UPDATE
         if cat_x == MIDDLE_X + MID_OFFSET_X - catImg.get_width()+30:
             direction = 'down'
     elif direction == 'down':
