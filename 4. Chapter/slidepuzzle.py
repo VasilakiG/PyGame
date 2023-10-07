@@ -236,4 +236,96 @@ def drawBoard(board, message):
         textSurface, textRectangle = makeText(message, MESSAGE_COLOR, BG_COLOR, 5, 5)
         DISPLAY_SURFACE.blit(textSurface, textRectangle)
         
-        
+    for tileX in range(len(board)):
+        for tileY in range(len(board[0])):
+            if board[tileX][tileY]:
+                drawTile(tileX, tileY, board[tileX][tileY])
+                
+    left, top = getLeftTopOfTile(0, 0)
+    width = BOARD_WIDTH * TILE_SIZE
+    height = BOARD_HEIGHT * TILE_SIZE
+    pygame.draw.rect(DISPLAY_SURFACE, BORDER_COLOR, (left - 5, top - 5, width + 11, height + 11), 4)
+    
+    DISPLAY_SURFACE.blit(RESET_SURFACE, RESET_RECTANGLE)
+    DISPLAY_SURFACE.blit(NEW_SURFACE, NEW_RECTANGLE)
+    DISPLAY_SURFACE.blit(SOLVE_SURFACE, SOLVE_RECTANGLE)
+
+
+def slideAnimation(board, direction, message, animationSpeed):
+    #Note: This function does not check if the move is valid
+    
+    blankX, blankY = getBlankPosition(board)
+    if direction == UP:
+        moveX = blankX
+        moveY = blankY + 1
+    elif direction == DOWN:
+        moveX = blankX
+        moveY = blankY - 1
+    elif direction == LEFT:
+        moveX = blankX + 1
+        moveY = blankY
+    elif direction == RIGHT:
+        moveX = blankX - 1
+        moveY = blankY
+    
+    #prepare the base surface
+    drawBoard(board, message)
+    baseSurface = DISPLAY_SURFACE.copy()
+    #draw a blank space over the moving tile on the baseSurface Surface
+    moveLeft, moveTop = getLeftTopOfTile(moveX, moveY)
+    pygame.draw.rect(baseSurface, BG_COLOR, (moveLeft, moveTop, TILE_SIZE, TILE_SIZE))
+    
+    for i in range(0, TILE_SIZE, animationSpeed):
+        #animate the tile sliding over
+        checkForQuit()
+        DISPLAY_SURFACE.blit(baseSurface, (0, 0))
+        if direction == UP:
+            drawTile(moveX, moveY, board[moveX][moveY], 0, -i)
+        if direction == DOWN:
+            drawTile(moveX, moveY, board[moveX][moveY], 0, i)
+        if direction == LEFT:
+            drawTile(moveX, moveY, board[moveX][moveY], -i, 0)
+        if direction == RIGHT:
+            drawTile(moveX, moveY, board[moveX][moveY], i, 0)
+            
+        pygame.display.update()
+        FPS_CLOCK.tick(FPS)
+
+
+def generateNewPuzzle(numSlides):
+    #From a starting configuration, make numSlides number of moves (and animate these moves)
+    sequence = []
+    board = getStartingBoard()
+    drawBoard(board, '')
+    pygame.display.update()
+    pygame.time.wait(500) #pause 500 milliseconds for effect
+    lastMove = None
+    for i in range(numSlides):
+        move = getRandomMove(board, lastMove)
+        slideAnimation(board, move, 'Generating new puzzle...', int(TILE_SIZE / 3))
+        makeMove(board, move)
+        sequence.append(move)
+        lastMove = move
+    return (board, sequence)
+
+
+def resetAnimation(board, allMoves):
+    #make all of the moves in allMoves in reverse
+    reverseAllMoves = allMoves[:] #gets a copy of the list
+    reverseAllMoves.reverse()
+    
+    for move in reverseAllMoves:
+        if move == UP:
+            oppositeMove = DOWN
+        elif move == DOWN:
+            oppositeMove = UP
+        elif move == RIGHT:
+            oppositeMove = LEFT
+        elif move == LEFT:
+            oppositeMove = RIGHT
+        slideAnimation(board, oppositeMove, '', int(TILE_SIZE / 2))
+        makeMove(board, oppositeMove)
+
+
+if __name__ == '__main__':
+    main()
