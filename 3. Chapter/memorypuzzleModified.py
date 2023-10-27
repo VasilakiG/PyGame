@@ -9,7 +9,9 @@ from pygame.locals import *
 FPS = 30 #frames per second
 WINDOW_WIDTH = 640 #size of window's width in pixels
 WINDOW_HEIGHT = 480 #size of window's height in pixels
-REVEAL_SPEED = 8 #speed boxes' sliding reveals and covers
+#--------овде е направена промена-------------
+REVEAL_SPEED = 4 
+#---------------------------------------------
 BOX_SIZE = 40 #size of box height & width in pixels
 GAP_SIZE = 10 #size of gap between boxes in pixels
 BOARD_WIDTH = 10 #number of columns of icons
@@ -205,26 +207,27 @@ def getShapeAndColor(board, box_x, box_y):
 
 
 def drawBoxCovers(board, boxes, coverage):
-    #Draws boxes being covererd/revealed. "boxes" is a list of two-item lists, which have the x & y spot of the box
     for box in boxes:
         left, top = leftTopCoordsOfBox(box[0], box[1])
         pygame.draw.rect(DISPLAY_SURFACE, BG_COLOR, (left, top, BOX_SIZE, BOX_SIZE))
+        
         shape, color = getShapeAndColor(board, box[0], box[1])
         drawIcon(shape, color, box[0], box[1])
-        if coverage > 0: #only draw the cover if there is an coverage
-            pygame.draw.rect(DISPLAY_SURFACE, BOX_COLOR, (left, top, coverage, BOX_SIZE))
+        
+        if coverage > 0: 
+            #---------овде е направена измена---------------
+            pygame.draw.rect(DISPLAY_SURFACE, BOX_COLOR, (left + BOX_SIZE - coverage, top, coverage, BOX_SIZE))
+            #-----------------------------------------------
     pygame.display.update()
     FPS_CLOCK.tick(FPS)
 
 
 def revealBoxesAnimation(board, boxesToReveal):
-    #Do the "box reveal" animation
     for coverage in range(BOX_SIZE, (-REVEAL_SPEED) - 1, -REVEAL_SPEED):
         drawBoxCovers(board, boxesToReveal, coverage)
 
 
 def coverBoxesAnimation(board, boxesToCover):
-    #Do the "box cover" animation
     for coverage in range(0, BOX_SIZE + REVEAL_SPEED, REVEAL_SPEED):
         drawBoxCovers(board, boxesToCover, coverage)
 
@@ -265,16 +268,23 @@ def startGameAnimation(board):
 
 
 def gameWonAnimation(board):
-    #flash the background color when the player has won
     
     covered_boxes = generateRevealedBoxesData(True)
-    color1 = LIGHT_BG_COLOR
-    color2 = BG_COLOR
+    
+    color1 = RED
+    color2 = YELLOW
     
     for i in range(13):
-        color1, color2 = color2, color1 #swap colors
-        DISPLAY_SURFACE.fill(color1)
-        drawBoard(board, covered_boxes)
+        color1, color2 = color2, color1
+        
+        #----------овде е направена измена-------------------
+        for box_x in range(BOARD_WIDTH):
+            for box_y in range(BOARD_HEIGHT):
+                left, top = leftTopCoordsOfBox(box_x, box_y)
+                pygame.draw.rect(DISPLAY_SURFACE, color1, (left - 5, top - 5, BOX_SIZE + 10, BOX_SIZE + 10), 4)
+                
+                drawIcon(*getShapeAndColor(board, box_x, box_y), box_x, box_y)
+        #----------------------------------------------------
         pygame.display.update()
         pygame.time.wait(300)
         
