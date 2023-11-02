@@ -14,11 +14,15 @@ from pygame.locals import *
 FPS = 30 # frames per second, the general speed of the program
 WINDOWWIDTH = 640 # size of window's width in pixels
 WINDOWHEIGHT = 480 # size of windows' height in pixels
-REVEALSPEED = 8 # speed boxes' sliding reveals and covers
+#-----SMOOTHING REVEAL SPEED---------
+REVEALSPEED = 4
+#------------------------------------
 BOXSIZE = 40 # size of box height & width in pixels
 GAPSIZE = 10 # size of gap between boxes in pixels
-BOARDWIDTH = 2 # number of columns of icons
-BOARDHEIGHT = 2 # number of rows of icons
+#------EASING------
+BOARDWIDTH = 5 
+BOARDHEIGHT = 4
+#------------------
 assert (BOARDWIDTH * BOARDHEIGHT) % 2 == 0, 'Board needs to have an even number of boxes for pairs of matches.'
 XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * (BOXSIZE + GAPSIZE))) / 2)
 YMARGIN = int((WINDOWHEIGHT - (BOARDHEIGHT * (BOXSIZE + GAPSIZE))) / 2)
@@ -308,7 +312,7 @@ def gameWonAnimation(board):
     alpha = 0
 
     # Animate the image
-    for i in range(180):
+    for i in range(40):
         if i % 2 == 0:
             alpha = 255 if alpha == 0 else 0  # Toggle alpha to make it blink
         win_animation.set_alpha(alpha)
