@@ -7,20 +7,27 @@ import pygame, sys, random
 from pygame.locals import *
 
 # Create the constants (go ahead and experiment with different values)
-BOARD_WIDTH = 8 #number of columns in the board
-BOARD_HEIGHT = 6 #number of rows in the board
-TILE_SIZE = 60
-WINDOW_WIDTH = BOARD_WIDTH * TILE_SIZE * 2
-WINDOW_HEIGHT = BOARD_HEIGHT * TILE_SIZE * 2
+#----------------NEW DIMENSIONS-----------------------------
+BOARD_WIDTH = 8
+BOARD_HEIGHT = 6
+#-----------------------------------------------------------
+TILE_SIZE = 80
+#----------------NEW DIMENSIONS-----------------------------
+WINDOW_WIDTH = BOARD_WIDTH * TILE_SIZE * 1.75
+WINDOW_HEIGHT = BOARD_HEIGHT * TILE_SIZE * 1.75
+#-----------------------------------------------------------
 FPS = 30
 BLANK = None
 
 #                 R    G    B
-BLACK =        (  0,   0,   0)
-WHITE =        (255, 255, 255)
-BRIGHT_BLUE =   (  0,  50, 255)
+BLACK         = (  0,   0,   0)
+WHITE         = (255, 255, 255)
+BRIGHT_BLUE   = (  0,  50, 255)
 DARK_TUQUOISE = (  3,  54,  73)
-GREEN =        (  0, 204,   0)
+GREEN         = (  0, 204,   0)
+#--------NEW COLOUR----------------
+RED           = (255,   0,   0)
+#----------------------------------
 
 BG_COLOR = DARK_TUQUOISE
 TILE_COLOR = GREEN
@@ -41,13 +48,19 @@ LEFT = 'left'
 RIGHT = 'right'
 
 def main():
-    global FPS_CLOCK, DISPLAY_SURFACE, BASIC_FONT, RESET_SURFACE, RESET_RECTANGLE, NEW_SURFACE, NEW_RECTANGLE, SOLVE_SURFACE, SOLVE_RECTANGLE
+    #----------------NEW VARIABLES-------------------
+    global FPS_CLOCK, DISPLAY_SURFACE, BASIC_FONT, RESET_SURFACE, RESET_RECTANGLE, NEW_SURFACE, NEW_RECTANGLE, SOLVE_SURFACE, SOLVE_RECTANGLE, blankxpos, blankypos
+    #------------------------------------------------
     
     pygame.init()
     FPS_CLOCK = pygame.time.Clock()
     DISPLAY_SURFACE = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption('Slide Puzzle')
     BASIC_FONT = pygame.font.Font('freesansbold.ttf', BASIC_FONT_SIZE)
+    
+    #---------INITIALIZE VARIABLES----------------
+    blankxpos, blankypos = BOARD_WIDTH - 1, BOARD_HEIGHT - 1  # Initialize blank tile position
+    #---------------------------------------------
     
     # Store the option buttons and their rectangles in OPTIONS
     RESET_SURFACE, RESET_RECTANGLE = makeText('Reset', TEXT_COLOR, TILE_COLOR, WINDOW_WIDTH - 120, WINDOW_HEIGHT - 90)
@@ -65,6 +78,7 @@ def main():
             msg = 'Solved!'
             
         drawBoard(mainBoard, msg)
+        drawHelpButton(mainBoard)
         
         checkForQuit()
         for event in pygame.event.get(): #event handling loop
@@ -84,8 +98,10 @@ def main():
                         allMoves = []
                     else:
                         #check if the clicked tile was next to the blank spot
-                
-                        blankX, blankY = getBlankPosition(mainBoard)
+
+                        #-----------------BLANK POSITION UPDATE-------------------
+                        blankX, blankY = getBlankPosition()
+                        #---------------------------------------------------------
                         if spotX == blankX + 1 and spotY == blankY:
                             slideTo = LEFT
                         elif spotX == blankX - 1 and spotY == blankY:
@@ -146,30 +162,37 @@ def getStartingBoard():
     return board
 
 
-def getBlankPosition(board):
-    #Return the x and y of board coordinates of the blank space
-    for x in range(BOARD_WIDTH):
-        for y in range(BOARD_HEIGHT):
-            if board[x][y] == None:
-                return (x, y)
+#----------------BLANK POSITION-------------------
+def getBlankPosition():
+    # Return the x and y board coordinates of the blank space
+    return blankxpos, blankypos
+#-------------------------------------------------
 
 
+#-----------------MAKE MOVE CHANGE----------------------
 def makeMove(board, move):
     #This function does not check if the move is valid
-    blankX, blankY = getBlankPosition(board)
+    global blankxpos, blankypos
     
     if move == UP:
-        board[blankX][blankY], board[blankX][blankY + 1] = board[blankX][blankY + 1], board[blankX][blankY]
+        board[blankxpos][blankypos], board[blankxpos][blankypos + 1] = board[blankxpos][blankypos + 1], board[blankxpos][blankypos]
+        blankypos += 1
     elif move == DOWN:
-        board[blankX][blankY], board[blankX][blankY - 1] = board[blankX][blankY - 1], board[blankX][blankY]
+        board[blankxpos][blankypos], board[blankxpos][blankypos - 1] = board[blankxpos][blankypos - 1], board[blankxpos][blankypos]
+        blankypos -= 1
     elif move == LEFT:
-        board[blankX][blankY], board[blankX + 1][blankY] = board[blankX + 1][blankY], board[blankX][blankY]
+        board[blankxpos][blankypos], board[blankxpos + 1][blankypos] = board[blankxpos + 1][blankypos], board[blankxpos][blankypos]
+        blankxpos += 1
     elif move == RIGHT:
-        board[blankX][blankY], board[blankX - 1][blankY] = board[blankX - 1][blankY], board[blankX][blankY]
+        board[blankxpos][blankypos], board[blankxpos - 1][blankypos] = board[blankxpos - 1][blankypos], board[blankxpos][blankypos]
+        blankxpos -= 1
+#--------------------------------------------------------
 
 
 def isValidMove(board, move):
-    blankX, blankY = getBlankPosition(board)
+    #-----------------BLANK POSITION UPDATE-------------------
+    blankX, blankY = getBlankPosition()
+    #---------------------------------------------------------
     return (move == UP and blankY != len(board[0]) - 1) or \
         (move == DOWN and blankY != 0) or \
         (move == LEFT and blankX != len(board) - 1) or \
@@ -254,19 +277,20 @@ def drawBoard(board, message):
 def slideAnimation(board, direction, message, animationSpeed):
     #Note: This function does not check if the move is valid
     
-    blankX, blankY = getBlankPosition(board)
+    #-----------------BLANK POSITION UPDATE-------------------
     if direction == UP:
-        moveX = blankX
-        moveY = blankY + 1
+        moveX = blankxpos
+        moveY = blankypos + 1
     elif direction == DOWN:
-        moveX = blankX
-        moveY = blankY - 1
+        moveX = blankxpos
+        moveY = blankypos - 1
     elif direction == LEFT:
-        moveX = blankX + 1
-        moveY = blankY
+        moveX = blankxpos + 1
+        moveY = blankypos
     elif direction == RIGHT:
-        moveX = blankX - 1
-        moveY = blankY
+        moveX = blankxpos - 1
+        moveY = blankypos
+    #---------------------------------------------------------  
     
     #prepare the base surface
     drawBoard(board, message)
@@ -325,6 +349,49 @@ def resetAnimation(board, allMoves):
             oppositeMove = RIGHT
         slideAnimation(board, oppositeMove, '', int(TILE_SIZE / 2))
         makeMove(board, oppositeMove)
+
+
+#----------------HELP BUTTON FUNCTIONS-------------------
+def highlightAdjacentTiles(blankX, blankY):
+    for adjacentX, adjacentY in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        if 0 <= blankX + adjacentX < BOARD_WIDTH and 0 <= blankY + adjacentY < BOARD_HEIGHT:
+            left, top = getLeftTopOfTile(blankX + adjacentX, blankY + adjacentY)
+            pygame.draw.rect(DISPLAY_SURFACE, RED, (left, top, TILE_SIZE, TILE_SIZE), 4)
+
+def drawHelpButton(mainBoard):
+    helpText = "Help"
+    textSurface, textRectangle = makeText(helpText, BUTTON_TEXT_COLOR, TILE_COLOR, WINDOW_WIDTH - 120, WINDOW_HEIGHT - 120)
+    pygame.draw.rect(DISPLAY_SURFACE, BUTTON_COLOR, textRectangle)
+    DISPLAY_SURFACE.blit(textSurface, textRectangle)
+
+    if textRectangle.collidepoint(pygame.mouse.get_pos()):
+        if pygame.mouse.get_pressed()[0]:
+            #-----------------BLANK POSITION UPDATE-------------------
+            blankX, blankY = getBlankPosition()
+            #---------------------------------------------------------
+            message = "Possible Direction: "
+            possible_directions = []
+            if isValidMove(mainBoard, UP):
+                possible_directions.append("UP")
+            if isValidMove(mainBoard, DOWN):
+                possible_directions.append("DOWN")
+            if isValidMove(mainBoard, LEFT):
+                possible_directions.append("LEFT")
+            if isValidMove(mainBoard, RIGHT):
+                possible_directions.append("RIGHT")
+
+            if possible_directions:
+                message += ", ".join(possible_directions)
+            else:
+                message += "No available moves."
+
+            drawBoard(mainBoard, message)
+    
+            #-----------------BLANK POSITION UPDATE-------------------
+            blankX, blankY = getBlankPosition()
+            #---------------------------------------------------------
+            highlightAdjacentTiles(blankX, blankY)
+#---------------------------------------------------------
 
 
 if __name__ == '__main__':
