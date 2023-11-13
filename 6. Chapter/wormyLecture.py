@@ -56,7 +56,7 @@ def main():
 
 def runGame():
     #--------------ADDED CODE--------------------
-    global yellowAppleOnScreen, yellowAppleTimer, yellowApple, redApplesEaten
+    global yellowAppleOnScreen, yellowAppleTimer, yellowApple, redApplesEaten, FPS
     #--------------------------------------------
     
     # Set a random start point.
@@ -117,13 +117,18 @@ def runGame():
             if wormBody['x'] == wormCoords[HEAD]['x'] and wormBody['y'] == wormCoords[HEAD]['y']:
                 return # game over
 
-        # check if worm has eaten an apply
+        # check if worm has eaten a red apple
         if wormCoords[HEAD]['x'] == apple['x'] and wormCoords[HEAD]['y'] == apple['y']:
             # don't remove worm's tail segment
             #--------------ADDED CODE-----------------
             redApplesEaten += 1  # Increase the count of red apples eaten
             #--------------------------------------------
             apple = getRandomLocation() # set a new apple somewhere
+            
+            #--------------ADDED CODE-----------------
+            if len(wormCoords) % 5 == 0:
+                FPS += 1
+            #-----------------------------------------
         else:
             del wormCoords[-1] # remove worm's tail segment
 
