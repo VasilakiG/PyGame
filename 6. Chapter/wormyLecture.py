@@ -94,7 +94,7 @@ def runGame():
                 yellowAppleOnScreen = False
 
         # Generate a new yellow apple after a certain interval if it's not on the screen
-        if not yellowAppleOnScreen and random.randint(0, 100) < 2:  # Adjust the probability as needed
+        if not yellowAppleOnScreen and random.randint(0, 100) < 2:
             yellowApple = getRandomLocation()
             yellowAppleOnScreen = True
             yellowAppleTimer = YELLOW_APPLE_DURATION
