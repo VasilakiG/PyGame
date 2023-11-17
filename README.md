@@ -7,5 +7,3 @@ Welcome to my PyGame Playground, where I embark on a game development journey th
 🎮 Endless Possibilities: Creating, modifying, and exploring an array of game projects, from classic arcade games to innovative, out-of-the-box concepts.
 
 🚀 Skill Progression: Gradually advancing my Python programming skills as I tackle increasingly complex challenges and game mechanics.
-
-📚 Documentation: I will try to document everything I learn from these projects.
