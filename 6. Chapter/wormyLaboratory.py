@@ -47,13 +47,25 @@ def main():
 
 
 def runGame():
+    
+    #----------------------Worm 2----------------------
+    global worm2Coords, direction2, worm2Alive
+    start_time = pygame.time.get_ticks()
+    #--------------------------------------------------
+    
     # Set a random start point.
     startx = random.randint(5, CELLWIDTH - 6)
     starty = random.randint(5, CELLHEIGHT - 6)
     wormCoords = [{'x': startx,     'y': starty},
-                  {'x': startx - 1, 'y': starty},
-                  {'x': startx - 2, 'y': starty}]
+                {'x': startx - 1, 'y': starty},
+                {'x': startx - 2, 'y': starty}]
     direction = RIGHT
+    
+    worm2Coords = [{'x': 0, 'y': 0},
+                {'x': 0, 'y': 0},
+                {'x': 0, 'y': 0}]
+    direction2 = RIGHT
+    worm2Alive = False
 
     # Start the apple in a random place.
     apple = getRandomLocation()
@@ -74,6 +86,20 @@ def runGame():
                 elif event.key == K_ESCAPE:
                     terminate()
 
+        #----------------------Worm 2----------------------
+        # Check if it's time to spawn the second worm
+        current_time = pygame.time.get_ticks()
+        if current_time - start_time > 20000 and not worm2Alive:  # 20 seconds
+            spawnSecondWorm()
+        
+        # Move the second worm
+        if worm2Alive:
+            moveWorm(worm2Coords, getRandomDirection())
+            
+        # Check for collisions
+        handleCollisions(wormCoords, worm2Coords)
+        #--------------------------------------------------
+        
         # check if the worm has hit itself or the edge
         if wormCoords[HEAD]['x'] == -1 or wormCoords[HEAD]['x'] == CELLWIDTH or wormCoords[HEAD]['y'] == -1 or wormCoords[HEAD]['y'] == CELLHEIGHT:
             return # game over
@@ -100,11 +126,75 @@ def runGame():
         wormCoords.insert(0, newHead)
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
-        drawWorm(wormCoords)
+        drawWorm1(wormCoords)
+        if worm2Alive:
+            drawWorm2(worm2Coords, RED)  # Draw the second worm in dark green
         drawApple(apple)
-        drawScore(len(wormCoords) - 3)
+        drawScore(len(wormCoords) - 3 + len(worm2Coords) - 3)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+        
+#----------------------Worm 2----------------------
+def spawnSecondWorm():
+    global worm2Coords, direction2, worm2Alive
+    startx = random.randint(5, CELLWIDTH - 6)
+    starty = random.randint(5, CELLHEIGHT - 6)
+    worm2Coords = [{'x': startx, 'y': starty},
+                   {'x': startx - 1, 'y': starty},
+                   {'x': startx - 2, 'y': starty}]
+    direction2 = RIGHT
+    worm2Alive = True
+
+def moveWorm(worm, direction):
+    if direction == UP:
+        newHead = {'x': worm[HEAD]['x'], 'y': worm[HEAD]['y'] - 1}
+    elif direction == DOWN:
+        newHead = {'x': worm[HEAD]['x'], 'y': worm[HEAD]['y'] + 1}
+    elif direction == LEFT:
+        newHead = {'x': worm[HEAD]['x'] - 1, 'y': worm[HEAD]['y']}
+    elif direction == RIGHT:
+        newHead = {'x': worm[HEAD]['x'] + 1, 'y': worm[HEAD]['y']}
+    worm.insert(0, newHead)
+    del worm[-1]
+
+def handleCollisions(worm1, worm2):
+    global worm2Alive
+    # Check if the original worm collides with the second worm
+    if worm1[HEAD] in worm2:
+        # Grow the original worm's body without moving the head
+        newBodySegment = {'x': worm1[HEAD]['x'], 'y': worm1[HEAD]['y']}
+        worm1.insert(1, newBodySegment)
+
+        # Kill the second worm only if it hits the edge
+        if (worm2[HEAD]['x'] == -1 or worm2[HEAD]['x'] == CELLWIDTH or
+                worm2[HEAD]['y'] == -1 or worm2[HEAD]['y'] == CELLHEIGHT):
+            terminate()
+        else:
+            worm2Alive = False  # Kill the second worm
+
+        return  # Avoid further processing if there's a collision
+
+    # Check if the second worm collides with the original worm
+    if worm2Alive and worm2[HEAD] in worm1:
+        # Grow the second worm's body without moving the head
+        newBodySegment = {'x': worm2[HEAD]['x'], 'y': worm2[HEAD]['y']}
+        worm2.insert(1, newBodySegment)
+
+def drawWorm2 (worm, color):
+    for coord in worm:
+        x = coord['x'] * CELLSIZE
+        y = coord['y'] * CELLSIZE
+        wormSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
+        wormInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
+        pygame.draw.rect(DISPLAYSURF, color, wormInnerSegmentRect)
+
+def getRandomLocation():
+    return {'x': random.randint(0, CELLWIDTH - 1), 'y': random.randint(0, CELLHEIGHT - 1)}
+
+def getRandomDirection():
+    return random.choice([UP, DOWN, LEFT, RIGHT])
+#--------------------------------------------------
 
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
@@ -179,11 +269,60 @@ def showGameOverScreen():
     pygame.display.update()
     pygame.time.wait(500)
     checkForKeyPress() # clear out any key presses in the event queue
+    
+    #--------------START/QUIT BUTTONS----------------
+    # Draw "Start from the beginning" button
+    startButtonSurf = BASICFONT.render('Start from the beginning', True, WHITE)
+    startButtonRect = startButtonSurf.get_rect()
+    startButtonRect.midtop = (WINDOWWIDTH / 2, overRect.height + 10 + 50)
+    
+    # Enlarge the button size
+    startButtonRect.width += 20
+    startButtonRect.height += 10
+    
+    # Create a black background for the button
+    pygame.draw.rect(DISPLAYSURF, BLACK, (startButtonRect.left - 10, startButtonRect.top - 5, startButtonRect.width + 20, startButtonRect.height + 10))
+    
+    DISPLAYSURF.blit(startButtonSurf, startButtonRect)
+    
+    # Draw "Quit" button
+    # Draw "Quit" button
+    quitButtonSurf = BASICFONT.render('Quit', True, WHITE)
+    quitButtonRect = quitButtonSurf.get_rect()
+    quitButtonRect.midtop = (WINDOWWIDTH / 2, startButtonRect.height + startButtonRect.top + 10)
+    
+    # Enlarge the button size
+    quitButtonRect.width += 20
+    quitButtonRect.height += 10
+    
+    # Create a black background for the button
+    pygame.draw.rect(DISPLAYSURF, BLACK, (quitButtonRect.left - 10, quitButtonRect.top - 5, quitButtonRect.width + 20, quitButtonRect.height + 10))
+    
+    DISPLAYSURF.blit(quitButtonSurf, quitButtonRect)
 
+    pygame.display.update()
+    #------------------------------------------------
+
+    # while True:
+    #     if checkForKeyPress():
+    #         pygame.event.get() # clear event queue
+    #         return
     while True:
-        if checkForKeyPress():
-            pygame.event.get() # clear event queue
-            return
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                terminate()
+            elif event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    terminate()
+            elif event.type == MOUSEBUTTONUP:
+                mouse_x, mouse_y = event.pos
+                # Check if the mouse click is within the "Start from the beginning" button
+                if startButtonRect.collidepoint(mouse_x, mouse_y):
+                    runGame()
+                    return
+                # Check if the mouse click is within the "Quit" button
+                elif quitButtonRect.collidepoint(mouse_x, mouse_y):
+                    terminate()
 
 def drawScore(score):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
@@ -192,7 +331,7 @@ def drawScore(score):
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 
-def drawWorm(wormCoords):
+def drawWorm1(wormCoords):
     for coord in wormCoords:
         x = coord['x'] * CELLSIZE
         y = coord['y'] * CELLSIZE
