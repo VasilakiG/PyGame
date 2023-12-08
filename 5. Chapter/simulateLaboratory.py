@@ -115,7 +115,7 @@ def main():
 
             
             #----------REVERSED PATTERN----------------
-            for button in (pattern):
+            for button in reversed(pattern):
             #------------------------------------------
                 flashButtonAnimation(button)
                 pygame.time.wait(FLASHDELAY)
