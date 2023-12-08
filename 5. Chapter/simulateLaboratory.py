@@ -16,12 +16,6 @@ BUTTONGAPSIZE = 20
 #-------------TIMEOUT CHANGE-----------------
 TIMEOUT = 5 # seconds before game over if no button is pushed.
 #--------------------------------------------
-#-------------GRIDSIZE CHANGE----------------
-GRIDSIZE = 2 # initial grid size
-
-BUTTONPERROW = GRIDSIZE
-BUTTONPERCOLUMN = GRIDSIZE
-#--------------------------------------------
 
 #                R    G    B
 WHITE        = (255, 255, 255)
@@ -37,8 +31,8 @@ YELLOW       = (155, 155,   0)
 DARKGRAY     = ( 40,  40,  40)
 bgColor = BLACK
 
-XMARGIN = int((WINDOWWIDTH - (BUTTONPERROW * BUTTONSIZE) - BUTTONGAPSIZE) / 2)
-YMARGIN = int((WINDOWHEIGHT - (BUTTONPERCOLUMN * BUTTONSIZE) - BUTTONGAPSIZE) / 2)
+XMARGIN = int((WINDOWWIDTH - (2 * BUTTONSIZE) - BUTTONGAPSIZE) / 2)
+YMARGIN = int((WINDOWHEIGHT - (2 * BUTTONSIZE) - BUTTONGAPSIZE) / 2)
 
 # Rect objects for each of the four buttons
 YELLOWRECT = pygame.Rect(XMARGIN, YMARGIN, BUTTONSIZE, BUTTONSIZE)
@@ -74,9 +68,6 @@ def main():
     waitingForInput = False
     #-------------TIMEOUT CHANGE-----------------
     patternChanges = 0  # variable to count pattern changes
-    #--------------------------------------------
-    #-------------GRIDSIZE CHANGE----------------
-    GRIDSIZE = 2  # initial grid size
     #--------------------------------------------
 
     while True: # main game loop
@@ -117,12 +108,6 @@ def main():
             patternChanges += 1 # increment pattern changes
             if patternChanges % 10 == 0:
                 # Decrease the TIMEOUT value every 10 changes
-                
-                #-----------GRIDSIZE CHANGE---------------
-                GRIDSIZE += 1
-                print("Grid size increased to", GRIDSIZE)
-                #-----------------------------------------
-                
                 global TIMEOUT
                 TIMEOUT = max(3, TIMEOUT - 1)
                 print("Timeout decreased to", TIMEOUT)
